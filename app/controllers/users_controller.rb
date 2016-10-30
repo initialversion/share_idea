@@ -1,6 +1,11 @@
 class UsersController < ApplicationController
   def index
     @users = User.page(params[:page])
+    @location_hash = Gmaps4rails.build_markers(@users.where.not(:location_latitude => nil)) do |user, marker|
+      marker.lat user.location_latitude
+      marker.lng user.location_longitude
+      marker.infowindow "<h5><a href='/users/#{user.id}'>#{user.created_at}</a></h5><small>#{user.location_formatted_address}</small>"
+    end
   end
 
   def show
@@ -13,6 +18,8 @@ class UsersController < ApplicationController
 
   def create
     @user = User.new
+    @user.location = params[:location]
+    @user.image = params[:image]
 
     if @user.save
       redirect_to "/users", :notice => "User created successfully."
@@ -28,6 +35,8 @@ class UsersController < ApplicationController
   def update
     @user = User.find(params[:id])
 
+    @user.location = params[:location]
+    @user.image = params[:image]
 
     if @user.save
       redirect_to "/users", :notice => "User updated successfully."
